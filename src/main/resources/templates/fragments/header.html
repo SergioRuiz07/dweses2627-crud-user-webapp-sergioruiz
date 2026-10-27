@@ -1,0 +1,56 @@
+<header th:fragment="header" class="border-bottom bg-light" xmlns:th="http://www.thymeleaf.org">
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+
+            <!-- Logo -->
+            <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
+                <img th:src="@{/images/logo.svg}" alt="CRUD Usuario" width="40" height="32" class="me-2">
+                <span class="fw-semibold text-primary" th:text="#{msg.title}">CRUD Usuario</span>
+            </a>
+
+            <!-- Botón hamburguesa -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMenu"
+                    aria-controls="navbarMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Contenido colapsable -->
+            <div class="collapse navbar-collapse" id="navbarMenu">
+
+                <!-- Menú principal -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}" th:text="#{msg.menu.home}">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/users}" th:text="#{msg.menu.users}">Usuarios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/roles}" th:text="#{msg.menu.roles}">Roles</a>
+                    </li>
+                </ul>
+
+                <!-- Selector de idioma: conserva la URL y los parámetros actuales y solo cambia "lang" -->
+                </ul>
+            </div>
+
+            !-- Selector de idioma -->
+            <form method="get"
+                  class="d-lg-flex align-items-center me-3"
+                  th:action="@{''}">
+
+
+                <label for="langSelect" class="visually-hidden">Idioma</label>
+                <select id="langSelect" name="lang" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="es" th:selected="${#locale.language == 'es'}">Español</option>
+                    <option value="en" th:selected="${#locale.language == 'en'}">English</option>
+                </select>
+            </form>
+
+
+        </div>
+
+        </div>
+        </div>
+    </nav>
+</header>

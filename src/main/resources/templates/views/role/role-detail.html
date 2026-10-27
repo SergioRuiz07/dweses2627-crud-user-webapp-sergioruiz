@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(#{msg.role-detail.title})}"></head>
+
+<body class="d-flex flex-column h-100">
+
+<!-- Insertar el fragmento del header -->
+<header th:replace="~{fragments/header :: header}"></header>
+
+<!-- Contenido dinámico -->
+<main class="form-page">
+    <div class="form-card">
+        <h1 th:text="#{msg.role-detail.title}"></h1>
+
+        <!-- El detalle de un rol no muestra ni permite asignar usuarios -->
+        <dl class="row mt-3">
+            <dt class="col-sm-4" th:text="#{msg.role-list.id}"></dt>
+            <dd class="col-sm-8" th:text="${role.id}"></dd>
+
+            <dt class="col-sm-4" th:text="#{msg.role-form.name}"></dt>
+            <dd class="col-sm-8" th:text="${role.name}"></dd>
+        </dl>
+
+        <a th:href="@{/roles/edit(id=${role.id})}" class="btn btn-primary" th:text="#{msg.role-list.edit}"></a>
+        <a th:href="@{/roles}" class="btn btn-secondary" th:text="#{msg.role-form.returnback}"></a>
+    </div>
+</main>
+
+<!-- Insertar el fragmento del footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<div th:replace="~{fragments/scripts :: scripts}"></div>
+
+</body>
+</html>

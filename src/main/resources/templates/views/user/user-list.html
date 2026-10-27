@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head(#{msg.user-list.title})}"></head>
+
+<body class="d-flex flex-column h-100">
+
+<!-- Insertar el fragmento del header -->
+<header th:replace="~{fragments/header :: header}"></header>
+
+<!-- Contenido dinámico -->
+<main class="list-page">
+    <div class="list-card list-card-wide">
+        <h1 th:text="#{msg.user-list.title}"></h1>
+        <a th:href="@{/users/new}" class="btn btn-success" th:text="#{msg.user-list.add}"></a>
+
+        <div th:if="${errorMessage}" th:text="${errorMessage}" class="alert alert-danger mt-3"></div>
+        <div th:if="${successMessage}" th:text="${successMessage}" class="alert alert-success mt-3"></div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped mt-3 align-middle">
+                <thead>
+                <tr>
+                    <th th:text="#{msg.user-list.id}"></th>
+                    <th th:text="#{msg.user-form.username}"></th>
+                    <th th:text="#{msg.user-form.active}"></th>
+                    <th th:text="#{msg.user-form.accountNonLocked}"></th>
+                    <th th:text="#{msg.user-form.lastPasswordChange}"></th>
+                    <th th:text="#{msg.user-form.passwordExpiresAt}"></th>
+                    <th th:text="#{msg.user-form.failedLoginAttempts}"></th>
+                    <th th:text="#{msg.user-form.emailVerified}"></th>
+                    <th th:text="#{msg.user-form.mustChangePassword}"></th>
+                    <th th:text="#{msg.user-form.roles}"></th>
+                    <th th:text="#{msg.user-list.actions}"></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(listUsers)}">
+                    <td colspan="11" class="text-center text-muted" th:text="#{msg.user-list.empty}"></td>
+                </tr>
+                <tr th:each="u : ${listUsers}">
+                    <td th:text="${u.id}"></td>
+                    <td th:text="${u.username}"></td>
+                    <td th:text="${u.active} ? #{msg.common.yes} : #{msg.common.no}"></td>
+                    <td th:text="${u.accountNonLocked} ? #{msg.common.yes} : #{msg.common.no}"></td>
+                    <td th:text="${#temporals.format(u.lastPasswordChange, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td th:text="${#temporals.format(u.passwordExpiresAt, 'dd/MM/yyyy HH:mm')}"></td>
+                    <td th:text="${u.failedLoginAttempts}"></td>
+                    <td th:text="${u.emailVerified} ? #{msg.common.yes} : #{msg.common.no}"></td>
+                    <td th:text="${u.mustChangePassword} ? #{msg.common.yes} : #{msg.common.no}"></td>
+                    <td>
+                        <span th:each="r : ${u.roles}" class="badge text-bg-secondary me-1" th:text="${r.name}"></span>
+                    </td>
+                    <td class="text-nowrap">
+                        <a th:href="@{/users/detail(id=${u.id})}" class="btn btn-info btn-sm"
+                           th:text="#{msg.user-list.detail}"></a>
+                        <a th:href="@{/users/edit(id=${u.id})}" class="btn btn-primary btn-sm"
+                           th:text="#{msg.user-list.edit}"></a>
+                        <form th:action="@{/users/delete}" method="post" class="d-inline"
+                              th:attr="data-confirm=#{msg.user-list.confirm}"
+                              onsubmit="return confirm(this.dataset.confirm);">
+                            <input type="hidden" name="id" th:value="${u.id}">
+                            <button type="submit" class="btn btn-danger btn-sm"
+                                    th:text="#{msg.user-list.delete}"></button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <a th:href="@{/}" class="btn btn-secondary" th:text="#{msg.user-form.returnback}"></a>
+    </div>
+</main>
+
+<!-- Insertar el fragmento del footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<div th:replace="~{fragments/scripts :: scripts}"></div>
+
+</body>
+</html>

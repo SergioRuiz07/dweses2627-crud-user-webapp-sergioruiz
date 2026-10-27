@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head((${role.id == null} ? #{msg.role-form.add} : #{msg.role-form.edit}))}"></head>
+
+<body class="d-flex flex-column h-100">
+
+<!-- Insertar el fragmento del header -->
+<header th:replace="~{fragments/header :: header}"></header>
+
+<!-- Contenido dinámico -->
+<main class="form-page">
+    <div class="form-card">
+        <h1 th:text="${role.id == null} ? #{msg.role-form.add} : #{msg.role-form.edit}"></h1>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <!-- Desde el CRUD de roles NO se asignan usuarios: solo se edita el nombre del rol -->
+        <form th:action="${role.id == null} ? @{/roles/insert} : @{/roles/update}"
+              th:object="${role}" method="post" class="mt-3">
+            <input type="hidden" th:field="*{id}">
+
+            <div class="mb-3">
+                <label for="name" class="form-label" th:text="#{msg.role-form.name}"></label>
+                <input type="text" th:field="*{name}" id="name" class="form-control"
+                       th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"
+                       maxlength="50" required />
+                <div th:if="${#fields.hasErrors('name')}" class="text-danger" th:errors="*{name}"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary"
+                    th:text="${role.id == null} ? #{msg.role-form.create} : #{msg.role-form.update}"></button>
+            <a th:href="@{/roles}" class="btn btn-secondary" th:text="#{msg.role-form.returnback}"></a>
+        </form>
+    </div>
+</main>
+
+<!-- Insertar el fragmento del footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<div th:replace="~{fragments/scripts :: scripts}"></div>
+
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head((${user.id == null} ? #{msg.user-form.add} : #{msg.user-form.edit}))}"></head>
+
+<body class="d-flex flex-column h-100">
+
+<!-- Insertar el fragmento del header -->
+<header th:replace="~{fragments/header :: header}"></header>
+
+<!-- Contenido dinámico -->
+<main class="form-page">
+    <div class="form-card form-card-wide">
+        <h1 th:text="${user.id == null} ? #{msg.user-form.add} : #{msg.user-form.edit}"></h1>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <form th:action="${user.id == null} ? @{/users/insert} : @{/users/update}"
+              th:object="${user}" method="post" class="mt-3">
+            <input type="hidden" th:field="*{id}">
+
+            <!-- username: texto, obligatorio, máximo 40 caracteres -->
+            <div class="mb-3">
+                <label for="username" class="form-label" th:text="#{msg.user-form.username}"></label>
+                <input type="text" th:field="*{username}" id="username" class="form-control"
+                       th:classappend="${#fields.hasErrors('username')} ? 'is-invalid'"
+                       maxlength="40" required />
+                <div th:if="${#fields.hasErrors('username')}" class="text-danger" th:errors="*{username}"></div>
+            </div>
+
+            <!-- passwordHash: texto (por ahora en texto plano), obligatorio, máximo 500 caracteres -->
+            <div class="mb-3">
+                <label for="passwordHash" class="form-label" th:text="#{msg.user-form.passwordHash}"></label>
+                <input type="text" th:field="*{passwordHash}" id="passwordHash" class="form-control"
+                       th:classappend="${#fields.hasErrors('passwordHash')} ? 'is-invalid'"
+                       maxlength="500" required />
+                <div th:if="${#fields.hasErrors('passwordHash')}" class="text-danger" th:errors="*{passwordHash}"></div>
+            </div>
+
+            <!-- active: checkbox -->
+            <div class="form-check mb-2">
+                <label for="active" class="form-check-label" th:text="#{msg.user-form.active}"></label>
+                <input type="checkbox" th:field="*{active}" id="active" class="form-check-input" />
+            </div>
+
+            <!-- accountNonLocked: checkbox -->
+            <div class="form-check mb-3">
+                <label for="accountNonLocked" class="form-check-label" th:text="#{msg.user-form.accountNonLocked}"></label>
+                <input type="checkbox" th:field="*{accountNonLocked}" id="accountNonLocked" class="form-check-input" />
+            </div>
+
+            <!-- lastPasswordChange: fecha y hora, obligatorio -->
+            <div class="mb-3">
+                <label for="lastPasswordChange" class="form-label" th:text="#{msg.user-form.lastPasswordChange}"></label>
+                <input type="datetime-local" th:field="*{lastPasswordChange}" id="lastPasswordChange"
+                       class="form-control" step="1" required
+                       th:classappend="${#fields.hasErrors('lastPasswordChange')} ? 'is-invalid'" />
+                <div th:if="${#fields.hasErrors('lastPasswordChange')}" class="text-danger"
+                     th:errors="*{lastPasswordChange}"></div>
+            </div>
+
+            <!-- passwordExpiresAt: solo lectura, se calcula en el servidor (lastPasswordChange + 3 meses) -->
+            <div class="mb-3">
+                <label for="passwordExpiresAt" class="form-label" th:text="#{msg.user-form.passwordExpiresAt}"></label>
+                <input type="text" id="passwordExpiresAt" class="form-control" disabled
+                       th:value="${user.passwordExpiresAt != null} ? ${#temporals.format(user.passwordExpiresAt, 'dd/MM/yyyy HH:mm')} : ''" />
+                <div class="form-text" th:text="#{msg.user-form.passwordExpiresAt.help}"></div>
+            </div>
+
+            <!-- failedLoginAttempts: entero >= 0, obligatorio -->
+            <div class="mb-3">
+                <label for="failedLoginAttempts" class="form-label" th:text="#{msg.user-form.failedLoginAttempts}"></label>
+                <input type="number" th:field="*{failedLoginAttempts}" id="failedLoginAttempts"
+                       class="form-control" min="0" step="1" required
+                       th:classappend="${#fields.hasErrors('failedLoginAttempts')} ? 'is-invalid'" />
+                <div th:if="${#fields.hasErrors('failedLoginAttempts')}" class="text-danger"
+                     th:errors="*{failedLoginAttempts}"></div>
+            </div>
+
+            <!-- emailVerified: checkbox -->
+            <div class="form-check mb-2">
+                <label for="emailVerified" class="form-check-label" th:text="#{msg.user-form.emailVerified}"></label>
+                <input type="checkbox" th:field="*{emailVerified}" id="emailVerified" class="form-check-input" />
+            </div>
+
+            <!-- mustChangePassword: checkbox -->
+            <div class="form-check mb-3">
+                <label for="mustChangePassword" class="form-check-label" th:text="#{msg.user-form.mustChangePassword}"></label>
+                <input type="checkbox" th:field="*{mustChangePassword}" id="mustChangePassword" class="form-check-input" />
+            </div>
+
+            <!-- Roles: selección de uno o varios roles (la asignación solo se gestiona desde aquí) -->
+            <div class="mb-3">
+                <label class="form-label" th:text="#{msg.user-form.roles}"></label>
+                <div class="roles-box">
+                    <div th:if="${#lists.isEmpty(allRoles)}" class="text-muted" th:text="#{msg.user-form.roles.none}"></div>
+                    <div th:each="role : ${allRoles}" class="form-check">
+                        <input type="checkbox" class="form-check-input" name="roleIds"
+                               th:id="|role_${role.id}|" th:value="${role.id}"
+                               th:checked="${selectedRoleIds.contains(role.id)}" />
+                        <label class="form-check-label" th:for="|role_${role.id}|" th:text="${role.name}"></label>
+                    </div>
+                </div>
+                <div class="form-text" th:text="#{msg.user-form.roles.help}"></div>
+                <div th:if="${#fields.hasErrors('roles')}" class="text-danger" th:errors="*{roles}"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary"
+                    th:text="${user.id == null} ? #{msg.user-form.create} : #{msg.user-form.update}"></button>
+            <a th:href="@{/users}" class="btn btn-secondary" th:text="#{msg.user-form.returnback}"></a>
+        </form>
+    </div>
+</main>
+
+<!-- Insertar el fragmento del footer -->
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<div th:replace="~{fragments/scripts :: scripts}"></div>
+
+</body>
+</html>
