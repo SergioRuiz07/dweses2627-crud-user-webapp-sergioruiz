@@ -13,15 +13,16 @@
 /* =========================================================
   ESTRUCTURA DE PÁGINA (FOOTER SIEMPRE VISIBLE)
   ========================================================= */
-html, body {
+html {
     height: 100%;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
 }
 
 
 body {
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
     font-family: 'Segoe UI', Roboto, sans-serif;
     background-color: #ffffff;
 }
@@ -35,12 +36,11 @@ body {
 }
 
 
-/* Centra verticalmente el contenido si la página es corta */
+/* Contenido principal: crece para empujar el footer hacia abajo */
 main {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
     text-align: center;
     padding: 2rem;
@@ -178,9 +178,7 @@ main {
 
 /* Contenedor principal del formulario */
 main.form-page {
-    min-height: calc(100vh - 140px); /* ocupa casi toda la pantalla sin pisar header/footer */
     display: flex;
-    justify-content: center;
     align-items: center;
     background-color: #f1f3f5; /* gris más claro que bg-light para contraste */
     padding: 2rem;
@@ -189,6 +187,7 @@ main.form-page {
 
 /* Caja del formulario */
 .form-card {
+    margin: auto;                         /* centra sin cortar el contenido si es alto */
     background-color: #ffffff;            /* blanco */
     padding: 2.5rem;
     border-radius: 12px;                  /* bordes suaves */
@@ -206,6 +205,12 @@ main.form-page {
     font-size: 1.5rem;
     font-weight: 600;
     margin-bottom: 1.5rem;
+}
+
+
+/* Alinea a la izquierda las etiquetas y campos del formulario */
+.form-card form {
+    text-align: left;
 }
 
 
@@ -270,7 +275,6 @@ main.form-page {
 /* Contenedor general */
 main.list-page {
     display: flex;
-    justify-content: center;
     align-items: center;
     background-color: #f1f3f5; /* gris claro */
     padding: 2rem;
@@ -279,6 +283,7 @@ main.list-page {
 
 /* Caja blanca centrada */
 .list-card {
+    margin: auto;                         /* centra sin cortar el contenido si es alto */
     background-color: #ffffff;
     padding: 2rem 2.5rem;
     border-radius: 12px;
