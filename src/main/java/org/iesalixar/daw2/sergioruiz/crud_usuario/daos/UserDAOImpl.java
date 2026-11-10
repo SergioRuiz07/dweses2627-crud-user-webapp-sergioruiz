@@ -8,15 +8,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,10 +19,7 @@ import java.util.Map;
  * Implementación JDBC de la interfaz UserDAO, basada en JdbcTemplate.
  *
  * Gestiona el acceso a la tabla users y a la tabla intermedia user_roles, que
- * representa la relación N:M entre usuarios y roles. Las operaciones que
- * modifican a la vez ambas tablas (alta, edición y borrado de usuarios) se
- * ejecutan dentro de una transacción, de forma que o se aplican todos los
- * cambios o no se aplica ninguno.
+ * representa la relación N:M entre usuarios y roles.
  */
 @Repository
 public class UserDAOImpl implements UserDAO {
@@ -78,25 +68,23 @@ public class UserDAOImpl implements UserDAO {
     /**
      * Inserta un nuevo usuario y sus asignaciones de roles.
      *
-     * Primero se inserta la fila en users, después se obtiene el id autogenerado
-     * y se guarda en el propio objeto, y por último se insertan en user_roles
-     * las filas correspondientes a los roles del usuario. Todo ocurre en una
-     * misma transacción.
+     * Primero se inserta la fila en users, después se recupera el id asignado
+     * buscando por nombre de usuario (que es único) y se guarda en el propio
+     * objeto, y por último se insertan en user_roles las filas correspondientes
+     * a los roles del usuario.
      *
      * @param user usuario a insertar; tras la llamada tendrá asignado su id.
      */
     @Override
-    @Transactional
     public void insertUser(User user) {
         logger.info("Entrando en insertUser() con username: {}", user.getUsername());
         String sql = "INSERT INTO users (username, password_hash, active, account_non_locked, last_password_change, " +
                 "password_expires_at, failed_login_attempts, email_verified, must_change_password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         int rowsAffected = jdbcTemplate.update(sql,
-                user.getUsername(),user.getPasswordHash(), user.getActive(),user.getAccountNonLocked(),user.getLastPasswordChange(),
-                user.getPasswordExpiresAt(),user.getFailedLoginAttempts(),user.getEmailVerified(),user.getMustChangePassword());
-        logger.info("Se han insertado {} datos nuevos en la tabla",rowsAffected);
-        // Id autogenerado (misma conexión que el INSERT gracias a @Transactional)
-        user.setId(jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Long.class));
+                user.getUsername(), user.getPasswordHash(), user.getActive(), user.getAccountNonLocked(), user.getLastPasswordChange(),
+                user.getPasswordExpiresAt(), user.getFailedLoginAttempts(), user.getEmailVerified(), user.getMustChangePassword());
+        logger.info("Se han insertado {} datos nuevos en la tabla", rowsAffected);
+        user.setId(jdbcTemplate.queryForObject("SELECT id FROM users WHERE username = ?", Long.class, user.getUsername()));
         saveRoles(user.getId(), user.getRoles());
     }
 
@@ -105,20 +93,18 @@ public class UserDAOImpl implements UserDAO {
      *
      * Se actualiza la fila de users, se eliminan todas las asignaciones previas
      * del usuario en user_roles y se insertan de nuevo las que trae el objeto.
-     * Todo ocurre en una misma transacción.
      *
      * @param user usuario con los datos nuevos; debe tener el id del usuario a modificar.
      */
     @Override
-    @Transactional
     public void updateUser(User user) {
         logger.info("Entrando en updateUser() con id: {}", user.getId());
         String sql = "UPDATE users SET username = ?, password_hash = ?, active = ?, account_non_locked = ?, "
                 + "last_password_change = ?, password_expires_at = ?, failed_login_attempts = ?, "
                 + "email_verified = ?, must_change_password = ? WHERE id = ?";
         int rows = jdbcTemplate.update(sql,
-                user.getUsername(),user.getPasswordHash(), user.getActive(),user.getAccountNonLocked(),user.getLastPasswordChange(),
-                user.getPasswordExpiresAt(),user.getFailedLoginAttempts(),user.getEmailVerified(),user.getMustChangePassword(),user.getId());
+                user.getUsername(), user.getPasswordHash(), user.getActive(), user.getAccountNonLocked(), user.getLastPasswordChange(),
+                user.getPasswordExpiresAt(), user.getFailedLoginAttempts(), user.getEmailVerified(), user.getMustChangePassword(), user.getId());
         jdbcTemplate.update("DELETE FROM user_roles WHERE user_id = ?", user.getId());
         saveRoles(user.getId(), user.getRoles());
         logger.info("Usuario actualizado. Filas afectadas: {}", rows);
@@ -128,13 +114,11 @@ public class UserDAOImpl implements UserDAO {
      * Elimina un usuario junto con sus asignaciones de roles.
      *
      * Primero se borran las filas de user_roles que referencian al usuario y
-     * después la fila de users, dentro de una misma transacción. Si el id no
-     * existe, no se modifica nada.
+     * después la fila de users. Si el id no existe, no se modifica nada.
      *
      * @param id identificador del usuario a eliminar.
      */
     @Override
-    @Transactional
     public void deleteUser(Long id) {
         logger.info("Entrando en deleteUser() con id: {}", id);
         int removedRoles = jdbcTemplate.update("DELETE FROM user_roles WHERE user_id = ?", id);
@@ -173,8 +157,8 @@ public class UserDAOImpl implements UserDAO {
     /**
      * Inserta en user_roles una fila por cada rol del usuario.
      *
-     * Es un método auxiliar de insertUser y updateUser, que ya se ejecutan en
-     * una transacción. Si la lista de roles es null no se hace nada.
+     * Es un método auxiliar de insertUser y updateUser, que lo llaman tras
+     * guardar el usuario. Si la lista de roles es null no se hace nada.
      *
      * @param userId identificador del usuario al que se asignan los roles.
      * @param roles roles a asignar; puede ser null o estar vacía.
