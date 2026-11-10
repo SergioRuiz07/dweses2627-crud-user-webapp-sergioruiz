@@ -123,7 +123,7 @@ public class UserController {
                              Locale locale) {
         logger.info("Entrando en insertUser() con username: {}", user.getUsername());
         try {
-            if (userDAO.existsUserByUsername(user.getUsername())) {
+            if (!result.hasFieldErrors("username") && userDAO.existsUserByUsername(user.getUsername())) {
                 result.rejectValue("username", "msg.user.username.exists");
             }
             List<Role> roles = new ArrayList<>();
@@ -216,7 +216,7 @@ public class UserController {
                              Locale locale) {
         logger.info("Entrando en updateUser() con id: {}", user.getId());
         try {
-            if (userDAO.existsUserByUsernameAndNotId(user.getUsername(), user.getId())) {
+            if (!result.hasFieldErrors("username") && userDAO.existsUserByUsernameAndNotId(user.getUsername(),user.getId())) {
                 result.rejectValue("username", "msg.user.username.exists");
             }
             List<Role> roles = new ArrayList<>();
